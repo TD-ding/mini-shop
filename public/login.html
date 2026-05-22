@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Mini Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <h1 class="logo" style="text-align:center;margin-bottom:24px">Mini Shop</h1>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">登录</button>
+        <button class="auth-tab" data-tab="register">注册</button>
+      </div>
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="login-username" required placeholder="请输入用户名" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="login-password" required placeholder="请输入密码" autocomplete="current-password">
+        </div>
+        <span class="form-hint" id="login-hint"></span>
+        <button type="submit" class="btn-primary" style="width:100%">登录</button>
+      </form>
+      <form id="register-form" class="auth-form" style="display:none">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="reg-username" required placeholder="3-20个字符" minlength="3" maxlength="20" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="reg-password" required placeholder="至少6个字符" minlength="6" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>确认密码</label>
+          <input type="password" id="reg-password2" required placeholder="再输一次密码" autocomplete="new-password">
+        </div>
+        <span class="form-hint" id="reg-hint"></span>
+        <button type="submit" class="btn-primary" style="width:100%">注册</button>
+      </form>
+      <p style="text-align:center;margin-top:16px"><a href="/index.html" class="link-go-shop">回到商城</a></p>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container"></div>
+  <script>
+    function escapeHTML(str) {
+      if (typeof str !== 'string') return str;
+      const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+    }
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast' + (type === 'error' ? ' toast-error' : '');
+      t.textContent = msg; c.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
+    }
+
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isLogin = tab.dataset.tab === 'login';
+        document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+        document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
+        document.getElementById('login-hint').textContent = '';
+        document.getElementById('reg-hint').textContent = '';
+      });
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!username || !password) return;
+      try {
+        const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.error || '登录失败', 'error'); return; }
+        showToast('登录成功');
+        setTimeout(() => window.location.href = '/index.html', 500);
+      } catch { showToast('网络错误', 'error'); }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const hint = document.getElementById('reg-hint');
+      const username = document.getElementById('reg-username').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const password2 = document.getElementById('reg-password2').value;
+      hint.textContent = '';
+      if (password !== password2) { hint.textContent = '两次密码不一致'; hint.className = 'form-hint error'; return; }
+      try {
+        const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+        const data = await res.json();
+        if (!res.ok) { hint.textContent = data.error; hint.className = 'form-hint error'; return; }
+        showToast('注册成功');
+        setTimeout(() => window.location.href = '/index.html', 500);
+      } catch { showToast('网络错误', 'error'); }
+    });
+  </script>
+</body>
+</html>

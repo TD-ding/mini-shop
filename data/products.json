@@ -1,0 +1,10 @@
+[
+  { "id": 1, "name": "MacBook Pro 14", "price": 14999, "category": "电脑", "image": "https://picsum.photos/seed/macbook/400/300", "description": "Apple M3 Pro 芯片，18GB 内存，512GB 存储，14 英寸 Liquid Retina XDR 显示屏" },
+  { "id": 2, "name": "iPhone 15 Pro", "price": 8999, "category": "手机", "image": "https://picsum.photos/seed/iphone/400/300", "description": "A17 Pro 芯片，钛金属设计，4800 万像素主摄，支持 USB-C" },
+  { "id": 3, "name": "AirPods Pro 2", "price": 1899, "category": "配件", "image": "https://picsum.photos/seed/airpods/400/300", "description": "自适应降噪，个性化空间音频，MagSafe 充电盒" },
+  { "id": 4, "name": "iPad Air", "price": 4799, "category": "电脑", "image": "https://picsum.photos/seed/ipad/400/300", "description": "M2 芯片，10.9 英寸 Liquid Retina 显示屏，支持 Apple Pencil" },
+  { "id": 5, "name": "Sony WH-1000XM5", "price": 2699, "category": "配件", "image": "https://picsum.photos/seed/sony/400/300", "description": "行业领先降噪，30 小时续航，自适应声音控制" },
+  { "id": 6, "name": "Samsung Galaxy S24", "price": 6999, "category": "手机", "image": "https://picsum.photos/seed/galaxy/400/300", "description": "Dynamic AMOLED 2X 屏幕，5000 万像素相机，Galaxy AI" },
+  { "id": 7, "name": "Nintendo Switch OLED", "price": 2599, "category": "游戏", "image": "https://picsum.photos/seed/switch/400/300", "description": "7 英寸 OLED 屏幕，64GB 存储，增强音频" },
+  { "id": 8, "name": "Apple Watch Ultra 2", "price": 6499, "category": "配件", "image": "https://picsum.photos/seed/watch/400/300", "description": "S9 SiP 芯片，49mm 钛金属表壳，精确双频 GPS" }
+]
