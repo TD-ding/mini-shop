@@ -76,7 +76,7 @@
       loginError.classList.remove('show');
       try {
         await api('/api/auth/login', { username: document.getElementById('login-username').value.trim(), password: document.getElementById('login-password').value });
-        window.location.href = '/';
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || '/'; window.location.href = redirect;
       } catch (err) { loginError.textContent = err.message; loginError.classList.add('show'); }
     });
 
@@ -87,7 +87,7 @@
       if (pwd !== document.getElementById('register-confirm').value) { registerError.textContent = '两次密码不一致'; registerError.classList.add('show'); return; }
       try {
         await api('/api/auth/register', { username: document.getElementById('register-username').value.trim(), password: pwd });
-        window.location.href = '/';
+        const redirect = new URLSearchParams(window.location.search).get('redirect') || '/'; window.location.href = redirect;
       } catch (err) { registerError.textContent = err.message; registerError.classList.add('show'); }
     });
   </script>

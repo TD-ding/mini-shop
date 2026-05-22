@@ -61,7 +61,7 @@ function updateAuthUI() {
       <button class="btn btn-sm btn-outline" id="logout-btn">退出</button>`;
     document.getElementById('logout-btn').addEventListener('click', logout);
   } else {
-    area.innerHTML = `<a href="/login.html" class="btn btn-sm btn-primary">登录 / 注册</a>`;
+    area.innerHTML = `<a href="/login.html?redirect=' + encodeURIComponent(location.pathname) + '" class="btn btn-sm btn-primary">登录 / 注册</a>`;
   }
 }
 
@@ -210,7 +210,7 @@ function renderCart() {
   container.querySelectorAll('[data-qty-minus]').forEach(btn => btn.addEventListener('click', () => { const i = Number(btn.dataset.qtyMinus); if (cart[i].quantity > 1) cart[i].quantity--; saveCart(); updateCartCount(); renderCart(); }));
   container.querySelectorAll('[data-qty-plus]').forEach(btn => btn.addEventListener('click', () => { const i = Number(btn.dataset.qtyPlus); if (cart[i].quantity < 99) cart[i].quantity++; saveCart(); updateCartCount(); renderCart(); }));
   container.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', () => { cart.splice(Number(btn.dataset.remove), 1); saveCart(); updateCartCount(); renderCart(); }));
-  document.getElementById('checkout-btn').addEventListener('click', () => { if (!currentUser) return showToast('请先登录', 'error'); openCheckout(); });
+  document.getElementById('checkout-btn').addEventListener('click', () => { if (!currentUser) { showToast('请先登录', 'error'); setTimeout(() => window.location.href = '/login.html?redirect=' + encodeURIComponent(location.pathname), 1200); return; } openCheckout(); });
 }
 
 const detailModal = document.getElementById('detail-modal');
