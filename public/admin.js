@@ -19,6 +19,11 @@ function formatDate(iso) {
 
 const statusMap = { pending: '待处理', paid: '已付款', shipped: '已发货', completed: '已完成', cancelled: '已取消' };
 
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function checkAuth() {
   try {
     const user = await api('/api/auth/me');
@@ -44,7 +49,7 @@ async function loadProducts() {
   const products = await api('/api/products');
   document.getElementById('products-tbody').innerHTML = products.map(p => `<tr>
     <td>${p.id}</td><td><img src="${p.image}" alt="" style="width:50px;height:36px;object-fit:cover;border-radius:4px;"></td>
-    <td>${p.name}</td><td>${p.category}</td><td>¥${p.price}</td>
+    <td>${esc(p.name)}</td><td>${esc(p.category)}</td><td>¥${p.price}</td>
     <td class="table-actions"><button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})">编辑</button><button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">删除</button></td>
   </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:#999;">暂无商品</td></tr>';
 }
@@ -85,7 +90,7 @@ window.deleteProduct = async function(id) {
 async function loadOrders() {
   const orders = await api('/api/orders');
   document.getElementById('orders-tbody').innerHTML = orders.map(o => `<tr>
-    <td>${o.id}</td><td>${o.userId}</td><td>${o.name}</td><td>¥${o.total}</td>
+    <td>${o.id}</td><td>${o.userId}</td><td>${esc(o.name)}</td><td>¥${o.total}</td>
     <td><span class="status-badge ${o.status}">${statusMap[o.status] || o.status}</span></td><td>${formatDate(o.createdAt)}</td>
     <td class="table-actions"><button class="btn btn-sm btn-outline" onclick="viewOrder(${o.id})">详情</button>
     <select onchange="updateOrderStatus(${o.id}, this.value)" class="btn btn-sm btn-outline" style="padding:5px 8px;">
@@ -104,12 +109,12 @@ orderDetailModal.addEventListener('click', e => { if (e.target === orderDetailMo
 window.viewOrder = async function(id) {
   const orders = await api('/api/orders'); const o = orders.find(x => x.id === id); if (!o) return;
   document.getElementById('order-detail-body').innerHTML = `
-    <p><strong>订单号：</strong>${o.id}</p><p><strong>收货人：</strong>${o.name}</p>
-    <p><strong>手机号：</strong>${o.phone}</p><p><strong>地址：</strong>${o.address}</p>
+    <p><strong>订单号：</strong>${o.id}</p><p><strong>收货人：</strong>${esc(o.name)}</p>
+    <p><strong>手机号：</strong>${esc(o.phone)}</p><p><strong>地址：</strong>${esc(o.address)}</p>
     <p><strong>状态：</strong><span class="status-badge ${o.status}">${statusMap[o.status]}</span></p>
     <p><strong>时间：</strong>${formatDate(o.createdAt)}</p>
     <h3 style="margin:16px 0 8px;font-size:0.95rem;">商品列表</h3>
-    ${o.items.map(i => `<div class="order-item"><span>${i.name} × ${i.quantity}</span><span>¥${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}
+    ${o.items.map(i => `<div class="order-item"><span>${esc(i.name)} × ${i.quantity}</span><span>¥${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}
     <div class="order-item" style="font-weight:700;border-top:1px solid var(--border);padding-top:8px;margin-top:8px;"><span>合计</span><span>¥${o.total.toFixed(2)}</span></div>`;
   orderDetailModal.classList.add('active');
 };
@@ -117,7 +122,7 @@ window.viewOrder = async function(id) {
 async function loadUsers() {
   const users = await api('/api/admin/users');
   document.getElementById('users-tbody').innerHTML = users.map(u => `<tr>
-    <td>${u.id}</td><td>${u.username}</td>
+    <td>${u.id}</td><td>${esc(u.username)}</td>
     <td><span class="status-badge ${u.role === 'admin' ? 'admin' : 'user'}">${u.role === 'admin' ? '管理员' : '普通用户'}</span></td>
     <td>${formatDate(u.createdAt)}</td>
     <td class="table-actions"><button class="btn btn-sm btn-outline" onclick="toggleRole(${u.id}, '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? '设为用户' : '设为管理员'}</button>

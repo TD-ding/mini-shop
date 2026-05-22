@@ -10,6 +10,11 @@ let submitting = false;
 
 const statusMap = { pending: '待处理', paid: '已付款', shipped: '已发货', completed: '已完成', cancelled: '已取消' };
 
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function api(url, options = {}) {
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -126,10 +131,10 @@ function renderProducts(products) {
   grid.innerHTML = products.map(p => {
     const isFav = favoriteIds.includes(p.id);
     return `<div class="product-card" data-id="${p.id}">
-      <img src="${p.image}" alt="${p.name}" loading="lazy">
+      <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">
       <div class="card-body">
-        <span class="card-category">${p.category}</span>
-        <div class="card-title">${p.name}</div>
+        <span class="card-category">${esc(p.category)}</span>
+        <div class="card-title">${esc(p.name)}</div>
         <div class="card-footer">
           <span class="price">${p.price}</span>
           <div class="card-actions">
@@ -194,8 +199,8 @@ function renderCart() {
     const p = pMap.get(item.id); if (!p) return '';
     const itemTotal = p.price * item.quantity; total += itemTotal;
     return `<div class="cart-item">
-      <img src="${p.image}" alt="${p.name}">
-      <div class="cart-item-info"><div class="name">${p.name}</div><div class="unit-price">¥${p.price} / 件</div></div>
+      <img src="${esc(p.image)}" alt="${esc(p.name)}">
+      <div class="cart-item-info"><div class="name">${esc(p.name)}</div><div class="unit-price">¥${p.price} / 件</div></div>
       <div class="qty-control"><button data-qty-minus="${idx}">-</button><span>${item.quantity}</span><button data-qty-plus="${idx}">+</button></div>
       <span class="item-total">¥${itemTotal.toFixed(2)}</span>
       <button class="remove-btn" data-remove="${idx}">&times;</button>
@@ -232,7 +237,7 @@ checkoutModal.addEventListener('click', e => { if (e.target === checkoutModal) c
 
 function openCheckout() {
   const pMap = new Map(allProducts.map(p => [p.id, p])); let total = 0;
-  const summary = cart.map(item => { const p = pMap.get(item.id); if (!p) return ''; const sub = p.price * item.quantity; total += sub; return `<div class="summary-item"><span>${p.name} × ${item.quantity}</span><span>¥${sub.toFixed(2)}</span></div>`; }).join('');
+  const summary = cart.map(item => { const p = pMap.get(item.id); if (!p) return ''; const sub = p.price * item.quantity; total += sub; return `<div class="summary-item"><span>${esc(p.name)} × ${item.quantity}</span><span>¥${sub.toFixed(2)}</span></div>`; }).join('');
   document.getElementById('order-summary').innerHTML = summary + `<div class="summary-total"><span>合计</span><span>¥${total.toFixed(2)}</span></div>`;
   document.getElementById('checkout-form').reset();
   checkoutModal.classList.add('active');
@@ -256,7 +261,7 @@ function renderOrders(orders) {
   if (!orders.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>暂无订单</div>'; return; }
   container.innerHTML = [...orders].reverse().map(o => `<div class="order-card">
     <div class="order-header"><span class="order-id">订单号：${o.id}</span><span class="status-badge ${o.status}">${statusMap[o.status] || o.status}</span></div>
-    <div class="order-items">${o.items.map(i => `<div class="order-item"><span>${i.name} × ${i.quantity}</span><span>¥${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}</div>
+    <div class="order-items">${o.items.map(i => `<div class="order-item"><span>${esc(i.name)} × ${i.quantity}</span><span>¥${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}</div>
     <div class="order-footer"><span>${formatDate(o.createdAt)}</span><span class="order-total">¥${o.total.toFixed(2)}</span></div>
   </div>`).join('');
 }
