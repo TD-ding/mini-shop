@@ -82,7 +82,8 @@
         const data = await res.json();
         if (!res.ok) { showToast(data.error || '登录失败', 'error'); return; }
         showToast('登录成功');
-        setTimeout(() => window.location.href = '/index.html', 500);
+        const from = new URLSearchParams(window.location.search).get('from') || '/index.html';
+        setTimeout(() => window.location.href = from, 500);
       } catch { showToast('网络错误', 'error'); }
     });
 
@@ -99,7 +100,8 @@
         const data = await res.json();
         if (!res.ok) { hint.textContent = data.error; hint.className = 'form-hint error'; return; }
         showToast('注册成功');
-        setTimeout(() => window.location.href = '/index.html', 500);
+        const from = new URLSearchParams(window.location.search).get('from') || '/index.html';
+        setTimeout(() => window.location.href = from, 500);
       } catch { showToast('网络错误', 'error'); }
     });
   </script>
