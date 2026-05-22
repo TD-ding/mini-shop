@@ -91,7 +91,7 @@ async function doLogout() {
   showToast('已退出登录');
 }
 
-function goLogin() { window.location.href = '/login.html'; }
+function goLogin() { window.location.href = '/login.html?from=' + encodeURIComponent(window.location.pathname); }
 
 function bindEvents() {
   renderCategoryBar();
