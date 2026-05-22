@@ -82,6 +82,10 @@ nav { display: flex; gap: 8px; }
 .btn-added { background: #16a34a; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; cursor: default; font-size: 0.9rem; font-weight: 500; }
 .btn-danger { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.85rem; padding: 4px 8px; }
 .btn-danger:hover { text-decoration: underline; }
+.btn-sm { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 0.8rem; transition: all 0.15s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm-danger { color: #ef4444; }
+.btn-sm-danger:hover { border-color: #ef4444; background: #fef2f2; }
 
 .cart-empty, .orders-empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
 .cart-item { display: flex; align-items: center; gap: 16px; background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }

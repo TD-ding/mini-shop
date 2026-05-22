@@ -370,8 +370,25 @@ async function renderOrders() {
       <span class="status-badge" style="background:${STATUS_COLORS[order.status]||'#999'};color:#fff;padding:2px 10px;border-radius:99px;font-size:0.8rem">${STATUS_MAP[order.status]||order.status}</span>
     </div>
     <div class="order-body">${order.items.map(item => `<div class="order-product"><span>${escapeHTML(item.name)} × ${item.quantity}</span><span>${formatPrice(item.price * item.quantity)}</span></div>`).join('')}</div>
-    <div class="order-footer"><span class="order-address">${escapeHTML(order.name)} / ${maskPhone(order.phone)} / ${escapeHTML(order.address)}</span><span class="order-total">${formatPrice(order.total)}</span></div>
+    <div class="order-footer">
+      <span class="order-address">${escapeHTML(order.name)} / ${maskPhone(order.phone)} / ${escapeHTML(order.address)}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="order-total">${formatPrice(order.total)}</span>
+        ${order.status === 'pending' ? `<button class="btn-sm btn-sm-danger" onclick="cancelOrder(${order.id})">取消订单</button>` : ''}
+      </div>
+    </div>
   </div>`).join('');
+}
+
+async function cancelOrder(id) {
+  if (!confirm('确定要取消这个订单吗？')) return;
+  try {
+    const res = await fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'cancelled' }) });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error, 'error'); return; }
+    showToast('订单已取消');
+    renderOrders();
+  } catch { showToast('网络错误', 'error'); }
 }
 
 function switchPage(page) {

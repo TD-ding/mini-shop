@@ -192,7 +192,7 @@ app.get('/api/orders', auth, (req, res) => {
   res.json(orders.filter(o => o.userId === req.user.id));
 });
 
-app.put('/api/orders/:id/status', auth, adminOnly, (req, res) => {
+app.put('/api/orders/:id/status', auth, (req, res) => {
   const id = Number(req.params.id);
   const { status } = req.body;
   const validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
@@ -201,6 +201,14 @@ app.put('/api/orders/:id/status', auth, adminOnly, (req, res) => {
   const orders = readJSON('orders.json');
   const order = orders.find(o => o.id === id);
   if (!order) return res.status(404).json({ error: '订单不存在' });
+
+  // Regular users can only cancel their own pending orders
+  if (req.user.role !== 'admin') {
+    if (order.userId !== req.user.id) return res.status(403).json({ error: '无权操作此订单' });
+    if (status !== 'cancelled') return res.status(403).json({ error: '用户只能取消订单' });
+    if (order.status !== 'pending') return res.status(400).json({ error: '只能取消待发货订单' });
+  }
+
   order.status = status;
   writeJSON('orders.json', orders);
   res.json({ message: '订单状态已更新', order });
