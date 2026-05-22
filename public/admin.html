@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - Mini Shop</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1 class="logo">管理后台</h1>
+      <nav>
+        <button class="nav-btn active" data-page="admin-products">商品管理</button>
+        <button class="nav-btn" data-page="admin-orders">订单管理</button>
+        <button class="nav-btn" data-page="admin-users">用户管理</button>
+      </nav>
+      <div class="header-right">
+        <a href="/index.html" class="nav-btn">回到商城</a>
+        <button class="nav-btn" onclick="logout()">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="page-admin-products" class="page active">
+    <div class="admin-toolbar">
+      <h2>商品管理</h2>
+      <button class="btn-primary" onclick="openProductModal()">+ 添加商品</button>
+    </div>
+    <div id="admin-products-list"></div>
+  </main>
+
+  <main id="page-admin-orders" class="page">
+    <h2 style="margin-bottom:16px">订单管理</h2>
+    <div id="admin-orders-list"></div>
+  </main>
+
+  <main id="page-admin-users" class="page">
+    <h2 style="margin-bottom:16px">用户管理</h2>
+    <div id="admin-users-list"></div>
+  </main>
+
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="product-modal-title">添加商品</h2>
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="pf-id">
+        <div class="form-group">
+          <label>商品名称</label>
+          <input type="text" id="pf-name" required placeholder="商品名称" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label>价格（元）</label>
+          <input type="number" id="pf-price" required placeholder="价格" step="0.01" min="0.01">
+        </div>
+        <div class="form-group">
+          <label>分类</label>
+          <input type="text" id="pf-category" required placeholder="分类" maxlength="30">
+        </div>
+        <div class="form-group">
+          <label>图片URL</label>
+          <input type="text" id="pf-image" placeholder="图片URL（可选）">
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="pf-desc" placeholder="商品描述" maxlength="500"></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%" id="pf-submit">保存</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <script>
+    function escapeHTML(str) {
+      if (typeof str !== 'string') return str;
+      const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+    }
+    function formatPrice(v) { return '¥' + Number(v).toFixed(2); }
+    function maskPhone(p) { return typeof p === 'string' && p.length >= 7 ? p.slice(0,3)+'****'+p.slice(-4) : p; }
+    function showToast(msg, type) {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast' + (type === 'error' ? ' toast-error' : '');
+      t.textContent = msg; c.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2000);
+    }
+
+    let products = [];
+
+    async function checkAdmin() {
+      try {
+        const res = await fetch('/api/me');
+        if (!res.ok) { window.location.href = '/login.html'; return; }
+        const user = await res.json();
+        if (user.role !== 'admin') { showToast('需要管理员权限', 'error'); setTimeout(() => window.location.href = '/index.html', 1000); return; }
+      } catch { window.location.href = '/login.html'; }
+    }
+
+    // Nav
+    document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn[data-page]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + btn.dataset.page).classList.add('active');
+        if (btn.dataset.page === 'admin-products') loadProducts();
+        if (btn.dataset.page === 'admin-orders') loadOrders();
+        if (btn.dataset.page === 'admin-users') loadUsers();
+      });
+    });
+
+    // ===== Products =====
+    async function loadProducts() {
+      const res = await fetch('/api/products');
+      products = await res.json();
+      const list = document.getElementById('admin-products-list');
+      if (!products.length) { list.innerHTML = '<div class="cart-empty"><div class="empty-icon">📦</div><p>暂无商品</p></div>'; return; }
+      list.innerHTML = `<table class="admin-table"><thead><tr><th>ID</th><th>商品名</th><th>分类</th><th>价格</th><th>操作</th></tr></thead><tbody>${
+        products.map(p => `<tr>
+          <td>${p.id}</td><td>${escapeHTML(p.name)}</td><td>${escapeHTML(p.category)}</td><td>${formatPrice(p.price)}</td>
+          <td><button class="btn-sm" onclick="editProduct(${p.id})">编辑</button> <button class="btn-sm btn-sm-danger" onclick="deleteProduct(${p.id})">删除</button></td>
+        </tr>`).join('')
+      }</tbody></table>`;
+    }
+
+    function openProductModal(product) {
+      document.getElementById('pf-id').value = product ? product.id : '';
+      document.getElementById('pf-name').value = product ? product.name : '';
+      document.getElementById('pf-price').value = product ? product.price : '';
+      document.getElementById('pf-category').value = product ? product.category : '';
+      document.getElementById('pf-image').value = product ? product.image : '';
+      document.getElementById('pf-desc').value = product ? product.description : '';
+      document.getElementById('product-modal-title').textContent = product ? '编辑商品' : '添加商品';
+      document.getElementById('pf-submit').textContent = product ? '更新' : '添加';
+      document.getElementById('product-modal').classList.add('show');
+    }
+
+    function closeProductModal() { document.getElementById('product-modal').classList.remove('show'); }
+
+    function editProduct(id) {
+      const p = products.find(x => x.id === id);
+      if (p) openProductModal(p);
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('确定要删除这个商品吗？')) return;
+      const res = await fetch('/api/products/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error, 'error'); return; }
+      showToast('商品已删除');
+      loadProducts();
+    }
+
+    document.getElementById('product-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = document.getElementById('pf-id').value;
+      const body = {
+        name: document.getElementById('pf-name').value.trim(),
+        price: Number(document.getElementById('pf-price').value),
+        category: document.getElementById('pf-category').value.trim(),
+        image: document.getElementById('pf-image').value.trim() || 'https://picsum.photos/seed/default/400/300',
+        description: document.getElementById('pf-desc').value.trim()
+      };
+      const url = id ? '/api/products/' + id : '/api/products';
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error, 'error'); return; }
+      showToast(id ? '商品已更新' : '商品已添加');
+      closeProductModal();
+      loadProducts();
+    });
+
+    // ===== Orders =====
+    const STATUS_MAP = { pending: '待发货', shipped: '已发货', delivered: '已送达', cancelled: '已取消' };
+    const STATUS_COLORS = { pending: '#f59e0b', shipped: '#3b82f6', delivered: '#16a34a', cancelled: '#6b7280' };
+
+    async function loadOrders() {
+      const res = await fetch('/api/orders');
+      const orders = await res.json();
+      const list = document.getElementById('admin-orders-list');
+      if (!orders.length) { list.innerHTML = '<div class="cart-empty"><div class="empty-icon">📦</div><p>暂无订单</p></div>'; return; }
+      list.innerHTML = [...orders].reverse().map(o => `<div class="order-card">
+        <div class="order-header">
+          <span class="order-id">订单号：${o.id}</span>
+          <span class="order-date">${new Date(o.createdAt).toLocaleString('zh-CN')}</span>
+          <span class="status-badge" style="background:${STATUS_COLORS[o.status]||'#999'};color:#fff;padding:2px 10px;border-radius:99px;font-size:0.8rem">${STATUS_MAP[o.status]||o.status}</span>
+        </div>
+        <div class="order-body">${o.items.map(i => `<div class="order-product"><span>${escapeHTML(i.name)} × ${i.quantity}</span><span>${formatPrice(i.price*i.quantity)}</span></div>`).join('')}</div>
+        <div class="order-footer">
+          <span class="order-address">${escapeHTML(o.name)} / ${maskPhone(o.phone)} / ${escapeHTML(o.address)}</span>
+          <div><span class="order-total">${formatPrice(o.total)}</span>
+          <select onchange="updateOrderStatus(${o.id},this.value)" style="margin-left:8px;padding:4px 8px;border-radius:6px;border:1px solid var(--border)">
+            ${Object.entries(STATUS_MAP).map(([k,v]) => `<option value="${k}" ${k===o.status?'selected':''}>${v}</option>`).join('')}
+          </select></div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function updateOrderStatus(id, status) {
+      const res = await fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error, 'error'); return; }
+      showToast('订单状态已更新');
+      loadOrders();
+    }
+
+    // ===== Users =====
+    async function loadUsers() {
+      const res = await fetch('/api/users');
+      const users = await res.json();
+      const list = document.getElementById('admin-users-list');
+      list.innerHTML = `<table class="admin-table"><thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead><tbody>${
+        users.map(u => `<tr>
+          <td>${u.id}</td><td>${escapeHTML(u.username)}</td>
+          <td><span class="role-badge ${u.role}">${u.role === 'admin' ? '管理员' : '用户'}</span></td>
+          <td>${new Date(u.createdAt).toLocaleString('zh-CN')}</td>
+          <td>${u.role !== 'admin' ? `<button class="btn-sm btn-sm-danger" onclick="deleteUser(${u.id},'${escapeHTML(u.username)}')">删除</button>` : '-'}</td>
+        </tr>`).join('')
+      }</tbody></table>`;
+    }
+
+    async function deleteUser(id, name) {
+      if (!confirm(`确定要删除用户「${name}」吗？`)) return;
+      const res = await fetch('/api/users/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error, 'error'); return; }
+      showToast('用户已删除');
+      loadUsers();
+    }
+
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login.html';
+    }
+
+    // Init
+    checkAdmin().then(() => loadProducts());
+  </script>
+</body>
+</html>
