@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - Mini Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">登录</button>
+        <button class="auth-tab" data-tab="register">注册</button>
+      </div>
+      <form class="auth-form" id="login-form">
+        <div class="auth-error" id="login-error"></div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="login-username" required placeholder="请输入用户名" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="login-password" required placeholder="请输入密码" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">登录</button>
+        <p class="auth-link">还没有账号？<a href="#" id="switch-to-register">立即注册</a></p>
+      </form>
+      <form class="auth-form hidden" id="register-form">
+        <div class="auth-error" id="register-error"></div>
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="register-username" required placeholder="2-20个字符" minlength="2" maxlength="20" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="register-password" required placeholder="至少6个字符" minlength="6" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>确认密码</label>
+          <input type="password" id="register-confirm" required placeholder="再次输入密码" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn btn-primary">注册</button>
+        <p class="auth-link">已有账号？<a href="#" id="switch-to-login">去登录</a></p>
+      </form>
+    </div>
+  </div>
+  <script>
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginError = document.getElementById('login-error');
+    const registerError = document.getElementById('register-error');
+    const tabs = document.querySelectorAll('.auth-tab');
+
+    function switchTab(tab) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      loginForm.classList.toggle('hidden', tab !== 'login');
+      registerForm.classList.toggle('hidden', tab !== 'register');
+      loginError.classList.remove('show');
+      registerError.classList.remove('show');
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+    document.getElementById('switch-to-register').addEventListener('click', e => { e.preventDefault(); switchTab('register'); });
+    document.getElementById('switch-to-login').addEventListener('click', e => { e.preventDefault(); switchTab('login'); });
+
+    async function api(url, body) {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return data;
+    }
+
+    loginForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      loginError.classList.remove('show');
+      try {
+        await api('/api/auth/login', { username: document.getElementById('login-username').value.trim(), password: document.getElementById('login-password').value });
+        window.location.href = '/';
+      } catch (err) { loginError.textContent = err.message; loginError.classList.add('show'); }
+    });
+
+    registerForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      registerError.classList.remove('show');
+      const pwd = document.getElementById('register-password').value;
+      if (pwd !== document.getElementById('register-confirm').value) { registerError.textContent = '两次密码不一致'; registerError.classList.add('show'); return; }
+      try {
+        await api('/api/auth/register', { username: document.getElementById('register-username').value.trim(), password: pwd });
+        window.location.href = '/';
+      } catch (err) { registerError.textContent = err.message; registerError.classList.add('show'); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "无线降噪耳机", "price": 899, "category": "数码", "description": "主动降噪，40小时续航，Hi-Res音质认证，佩戴舒适。", "image": "https://picsum.photos/seed/headphone/400/300" },
+  { "id": 2, "name": "机械键盘", "price": 599, "category": "数码", "description": "Cherry MX红轴，RGB背光，全键无冲，铝合金面板。", "image": "https://picsum.photos/seed/keyboard/400/300" },
+  { "id": 3, "name": "运动跑鞋", "price": 459, "category": "服饰", "description": "轻量缓震，透气网面，适合日常跑步和健身训练。", "image": "https://picsum.photos/seed/shoes/400/300" },
+  { "id": 4, "name": "棉麻休闲衬衫", "price": 189, "category": "服饰", "description": "天然棉麻面料，透气舒适，简约百搭，多色可选。", "image": "https://picsum.photos/seed/shirt/400/300" },
+  { "id": 5, "name": "智能手表", "price": 1299, "category": "数码", "description": "心率血氧监测，GPS定位，7天续航，100+运动模式。", "image": "https://picsum.photos/seed/watch/400/300" },
+  { "id": 6, "name": "手冲咖啡壶套装", "price": 268, "category": "家居", "description": "含滤杯、分享壶、温度计，在家也能冲出咖啡馆品质。", "image": "https://picsum.photos/seed/coffee/400/300" },
+  { "id": 7, "name": "北欧风台灯", "price": 329, "category": "家居", "description": "无极调光，护眼LED光源，实木底座，简约设计感。", "image": "https://picsum.photos/seed/lamp/400/300" },
+  { "id": 8, "name": "《人类简史》", "price": 48, "category": "图书", "description": "尤瓦尔·赫拉利经典之作，从认知革命到未来展望。", "image": "https://picsum.photos/seed/book1/400/300" },
+  { "id": 9, "name": "《设计心理学》", "price": 56, "category": "图书", "description": "唐纳德·诺曼著，理解好设计的本质，设计师必读。", "image": "https://picsum.photos/seed/book2/400/300" },
+  { "id": 10, "name": "便携蓝牙音箱", "price": 349, "category": "数码", "description": "IPX7防水，12小时续航，360°环绕立体声，小巧便携。", "image": "https://picsum.photos/seed/speaker/400/300" }
+]
