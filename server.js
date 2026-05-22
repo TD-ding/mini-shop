@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'mini-shop-secret-change-in-production';
 
 app.use(express.json());
@@ -43,12 +43,22 @@ function adminOnly(req, res, next) {
   next();
 }
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`);
+  });
+  next();
+});
+
 // ========== Auth ==========
 
 app.post('/api/register', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: '请填写用户名和密码' });
   if (username.length < 3 || username.length > 20) return res.status(400).json({ error: '用户名需3-20个字符' });
+  if (!/^[\w一-龥]+$/.test(username)) return res.status(400).json({ error: '用户名只能包含字母、数字、下划线和中文' });
   if (password.length < 6) return res.status(400).json({ error: '密码至少6个字符' });
 
   const users = readJSON('users.json');
@@ -211,6 +221,11 @@ app.delete('/api/users/:id', auth, adminOnly, (req, res) => {
   if (filtered.length === users.length) return res.status(404).json({ error: '用户不存在' });
   writeJSON('users.json', filtered);
   res.json({ message: '用户已删除' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.message);
+  res.status(500).json({ error: '服务器内部错误' });
 });
 
 app.listen(PORT, () => {
