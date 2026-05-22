@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - Mini Shop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <a href="/" class="logo">Mini Shop</a>
+      <button class="admin-nav-item active" data-section="products">📦 <span>商品管理</span></button>
+      <button class="admin-nav-item" data-section="orders">📋 <span>订单管理</span></button>
+      <button class="admin-nav-item" data-section="users">👥 <span>用户管理</span></button>
+      <button class="admin-nav-item" id="back-to-shop">🛒 <span>回到商城</span></button>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-section active" id="section-products">
+        <div class="admin-header"><h1>商品管理</h1><button class="btn btn-primary" id="add-product-btn">+ 添加商品</button></div>
+        <table class="data-table" id="products-table"><thead><tr><th>ID</th><th>图片</th><th>名称</th><th>分类</th><th>价格</th><th>操作</th></tr></thead><tbody id="products-tbody"></tbody></table>
+      </div>
+      <div class="admin-section" id="section-orders">
+        <div class="admin-header"><h1>订单管理</h1></div>
+        <table class="data-table" id="orders-table"><thead><tr><th>订单号</th><th>用户ID</th><th>收货人</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="orders-tbody"></tbody></table>
+      </div>
+      <div class="admin-section" id="section-users">
+        <div class="admin-header"><h1>用户管理</h1></div>
+        <table class="data-table" id="users-table"><thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="users-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-header"><h2 id="product-modal-title">添加商品</h2><button class="modal-close" id="product-modal-close">&times;</button></div>
+      <div class="modal-body">
+        <form id="product-form">
+          <input type="hidden" id="pf-id">
+          <div class="form-group"><label>商品名称</label><input type="text" id="pf-name" required placeholder="请输入商品名称"></div>
+          <div class="form-group"><label>价格（元）</label><input type="number" id="pf-price" required placeholder="请输入价格" step="0.01" min="0"></div>
+          <div class="form-group"><label>分类</label><input type="text" id="pf-category" required placeholder="如：数码、服饰、家居"></div>
+          <div class="form-group"><label>描述</label><textarea id="pf-desc" rows="3" placeholder="商品描述"></textarea></div>
+          <div class="form-group"><label>图片URL</label><input type="text" id="pf-image" placeholder="留空使用随机图片"></div>
+          <button type="submit" class="btn btn-primary btn-checkout" id="pf-submit">保存</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="order-detail-modal">
+    <div class="modal">
+      <div class="modal-header"><h2>订单详情</h2><button class="modal-close" id="order-detail-close">&times;</button></div>
+      <div class="modal-body" id="order-detail-body"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script src="admin.js"></script>
+</body>
+</html>
