@@ -260,11 +260,21 @@ function renderOrders(orders) {
   const container = document.getElementById('orders-content');
   if (!orders.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>暂无订单</div>'; return; }
   container.innerHTML = [...orders].reverse().map(o => `<div class="order-card">
-    <div class="order-header"><span class="order-id">订单号：${o.id}</span><span class="status-badge ${o.status}">${statusMap[o.status] || o.status}</span></div>
+    <div class="order-header"><span class="order-id">订单号：${o.id}</span><div class="order-header-actions"><span class="status-badge ${o.status}">${statusMap[o.status] || o.status}</span></div>
     <div class="order-items">${o.items.map(i => `<div class="order-item"><span>${esc(i.name)} × ${i.quantity}</span><span>¥${(i.price * i.quantity).toFixed(2)}</span></div>`).join('')}</div>
     <div class="order-footer"><span>${formatDate(o.createdAt)}</span><span class="order-total">¥${o.total.toFixed(2)}</span></div>
   </div>`).join('');
 }
+
+
+window.cancelOrder = async function(id) {
+  if (!confirm('确定要取消这个订单吗？')) return;
+  try {
+    await api(`/api/orders/${id}/cancel`, { method: 'PUT' });
+    showToast('订单已取消', 'info');
+    loadOrders();
+  } catch (err) { showToast(err.message, 'error'); }
+};
 
 (async () => {
   await checkAuth();

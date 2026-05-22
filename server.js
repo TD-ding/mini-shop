@@ -313,6 +313,22 @@ app.delete('/api/admin/users/:id', adminOnly, (req, res) => {
 
 // --- Seed admin ---
 
+
+// --- User: Cancel Order ---
+
+app.put('/api/orders/:id/cancel', auth, (req, res) => {
+  const orders = read(DATA.orders);
+  const order = orders.find(o => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ error: '订单不存在' });
+  if (order.userId !== req.userId) return res.status(403).json({ error: '无权操作此订单' });
+  if (order.status !== 'pending' && order.status !== 'paid') {
+    return res.status(400).json({ error: '当前订单状态无法取消' });
+  }
+  order.status = 'cancelled';
+  write(DATA.orders, orders);
+  res.json(order);
+});
+
 function seedAdmin() {
   const users = read(DATA.users);
   if (!users.find(u => u.username === 'admin')) {
