@@ -11,7 +11,7 @@ let submitting = false;
 const statusMap = { pending: '待处理', paid: '已付款', shipped: '已发货', completed: '已完成', cancelled: '已取消' };
 
 function esc(str) {
-  if (str == null) return '';
+  if (str === null || str === undefined) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
