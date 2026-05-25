@@ -12,6 +12,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// JSON 文件存储路径
 const DATA = {
   products: path.join(__dirname, 'data', 'products.json'),
   users: path.join(__dirname, 'data', 'users.json'),
@@ -19,9 +20,11 @@ const DATA = {
   favorites: path.join(__dirname, 'data', 'favorites.json'),
 };
 
+// 内存 session 存储，key=token, value=userId
 const sessions = new Map();
 const MAX_QUANTITY = 99;
 
+// 读取 JSON 文件，不存在时返回空数组（favorites 返回空对象）
 function read(file) {
   try { return JSON.parse(fs.readFileSync(file, 'utf-8')); }
   catch { return file === DATA.favorites ? {} : []; }
@@ -31,12 +34,14 @@ function write(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
+// 生成 64 字符随机 session token
 function genToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// --- Middleware ---
+// --- 认证中间件 ---
 
+// 验证登录状态：从 cookie 中提取 token，查找对应 userId
 function auth(req, res, next) {
   const t = req.cookies.token;
   if (!t || !sessions.has(t)) return res.status(401).json({ error: '请先登录' });
@@ -44,6 +49,7 @@ function auth(req, res, next) {
   next();
 }
 
+// 验证管理员权限：需登录 + 角色为 admin
 function adminOnly(req, res, next) {
   const t = req.cookies.token;
   if (!t || !sessions.has(t)) return res.status(401).json({ error: '请先登录' });
@@ -54,7 +60,7 @@ function adminOnly(req, res, next) {
   next();
 }
 
-// --- Auth API ---
+// --- 认证 API：注册、登录、退出、获取当前用户 ---
 
 app.post('/api/auth/register', (req, res) => {
   const { username, password } = req.body;
@@ -113,7 +119,7 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ id: user.id, username: user.username, role: user.role });
 });
 
-// --- Products API (public read) ---
+// --- 商品 API：公开读取，支持搜索/分类/排序 ---
 
 app.get('/api/products', (req, res) => {
   let products = read(DATA.products);
@@ -145,7 +151,7 @@ app.get('/api/categories', (req, res) => {
   res.json(['全部', ...categories]);
 });
 
-// --- Favorites API ---
+// --- 收藏 API：登录用户可收藏/取消收藏商品 ---
 
 app.get('/api/favorites', auth, (req, res) => {
   const favs = read(DATA.favorites);
@@ -171,7 +177,7 @@ app.delete('/api/favorites/:productId', auth, (req, res) => {
   res.json(favs[req.userId] || []);
 });
 
-// --- Orders API ---
+// --- 订单 API：下单时服务端验证商品价格和数量，防止客户端篡改 ---
 
 app.post('/api/orders', auth, (req, res) => {
   const { name, phone, address, items } = req.body;
@@ -218,11 +224,11 @@ app.get('/api/orders', auth, (req, res) => {
   res.json(user.role === 'admin' ? orders : orders.filter(o => o.userId === req.userId));
 });
 
-// --- Admin: Products CRUD ---
+// --- 管理后台 API：商品 CRUD、订单状态管理、用户管理（仅管理员） ---
 
 app.post('/api/admin/products', adminOnly, (req, res) => {
   const { name, price, category, description, image } = req.body;
-  if (!name || price == null || !category) {
+  if (!name || price === null || price === undefined || !category) {
     return res.status(400).json({ error: '请填写商品名称、价格和分类' });
   }
   const products = read(DATA.products);
@@ -264,7 +270,8 @@ app.delete('/api/admin/products/:id', adminOnly, (req, res) => {
   res.json({ message: '已删除' });
 });
 
-// --- Admin: Orders ---
+// 订单状态流转：pending → paid → shipped → completed / cancelled
+
 
 app.put('/api/admin/orders/:id/status', adminOnly, (req, res) => {
   const { status } = req.body;
@@ -279,7 +286,7 @@ app.put('/api/admin/orders/:id/status', adminOnly, (req, res) => {
   res.json(order);
 });
 
-// --- Admin: Users ---
+// 用户管理：管理员可切换角色，但不能操作自己
 
 app.get('/api/admin/users', adminOnly, (req, res) => {
   const users = read(DATA.users).map(u => ({
@@ -311,11 +318,9 @@ app.delete('/api/admin/users/:id', adminOnly, (req, res) => {
   res.json({ message: '已删除' });
 });
 
-// --- Seed admin ---
+// --- 初始化：首次启动自动创建默认管理员 ---
 
-
-// --- User: Cancel Order ---
-
+// 用户取消订单：仅允许取消自己的 pending/paid 状态订单
 app.put('/api/orders/:id/cancel', auth, (req, res) => {
   const orders = read(DATA.orders);
   const order = orders.find(o => o.id === Number(req.params.id));
@@ -345,4 +350,10 @@ function seedAdmin() {
 }
 
 seedAdmin();
-app.listen(PORT, () => console.log(`服务器已启动：http://localhost:${PORT}`));
+
+// 仅在直接运行时启动服务器（被 require 时不启动，方便测试）
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`服务器已启动：http://localhost:${PORT}`));
+}
+
+module.exports = app;
